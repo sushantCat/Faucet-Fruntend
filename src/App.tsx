@@ -43,24 +43,25 @@ import URL from "./env.ts";
 const CLIENT_ID = "Iv23liAQdUtyqOxndxIa";
 
 function isBitcoinAddress(address: string) {
+  let isValid = false;
   try {
     bitcoin.address.fromBech32(address);
-  } catch (e) {
     try {
       bitcoin.address.toOutputScript(address, bitcoin.networks.testnet);
+      isValid = true;
     } catch (e) {
-      return false;
+      isValid = false;
     }
+  } catch (e) {
+    isValid = false;
   }
-  return true;
+  return isValid;
 }
 
 const FormSchema = z.object({
-  address: z
-    .string()
-    .refine((address) => isBitcoinAddress(address), {
-      message: "Invalid testnet BTC address",
-    }),
+  address: z.string().refine((address) => isBitcoinAddress(address), {
+    message: "Invalid testnet BTC address",
+  }),
 });
 
 type AccessTokenResponse = {
@@ -197,13 +198,29 @@ function App() {
     const data = await res.json();
     console.log(data);
 
-    let value = data.map((val: {datetime: string, tx: string, recipient_address: string}) => ({
-      dateTime: val.datetime,
-      txHash: val.tx,
-      recipientAddress: val.recipient_address,
-    }));
+    let value = data.map(
+      (val: { datetime: string; tx: string; recipient_address: string }) => ({
+        dateTime: val.datetime,
+        txHash: val.tx,
+        recipientAddress: adjustLength(val.recipient_address, 42),
+      }),
+    );
     return value;
   }, [URL]);
+
+  function adjustLength(value: string, targetLength: number): string {
+    if (value.length <= targetLength) {
+      return value;
+    }
+
+    const prefixLength = Math.ceil((targetLength - 3) / 2);
+    const suffixLength = Math.floor((targetLength - 3) / 2);
+
+    const prefix = value.substring(0, prefixLength);
+    const suffix = value.substring(value.length - suffixLength);
+
+    return `${prefix}...${suffix}`;
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -246,12 +263,12 @@ function App() {
   }, [code, getAccessToken]);
 
   useEffect(() => {
-    async function fetch(){
-    let transactions = await fetchTransactions();
-    setTransactions(transactions);
+    async function fetch() {
+      let transactions = await fetchTransactions();
+      setTransactions(transactions);
     }
 
-    fetch()
+    fetch();
   }, []);
 
   return (
@@ -370,7 +387,7 @@ function App() {
           ""
         )}
 
-        <Table className="mt-6">
+        <Table className="mt-6 mb-6">
           <TableCaption>List of last 10 transactions</TableCaption>
           <TableHeader>
             <TableRow>
@@ -385,8 +402,17 @@ function App() {
                 <TableCell className="text-left">
                   {transaction.recipientAddress}
                 </TableCell>
-                <TableCell className="text-left">
-                  {transaction.txHash}
+                <TableCell className="text-left underline">
+                  {transaction.txHash ? (
+                    <a
+                      href={`https://mempool.space/testnet/tx/${transaction.txHash}`}
+                      target="_blank"
+                    >
+                      {transaction.txHash}
+                    </a>
+                  ) : (
+                    transaction.txHash
+                  )}
                 </TableCell>
                 <TableCell className="text-left">
                   {transaction.dateTime}
