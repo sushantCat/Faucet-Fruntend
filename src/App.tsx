@@ -80,6 +80,7 @@ type Transaction = {
 
 function App() {
   let [loading, setLoading] = useState(false);
+  let [processing, setProcessing] = useState(false);
   const [userData, setUserData] = useState({ username: "", avatar: "" });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [redeemDetails, setRedeemDetails] = useState({
@@ -87,6 +88,7 @@ function App() {
     recipient_address: "",
     error: null,
   });
+  const [gotResponse, setGotResponse] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -95,36 +97,54 @@ function App() {
     },
   });
 
+  const sleep = async () => {
+    return new Promise((res, _) => {
+      setTimeout(() => {
+        res("lol");
+      }, 300);
+    });
+  };
+
   const fetchBitcoin = useCallback(
     async (accessToken: String, address: String) => {
-      const res = await fetch(`${URL}/get-btc`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          access_token: accessToken,
-          address,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-      const data = await res.json();
-      if (!data.error) {
-        setRedeemDetails({
-          tx: data.tx,
-          recipient_address: data.recipient_address,
-          error: null,
+      try {
+        setProcessing(true);
+        await sleep();
+        const res = await fetch(`${URL}/get-btc`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            access_token: accessToken,
+            address,
+          }),
         });
-      } else {
-        setRedeemDetails({
-          tx: "",
-          recipient_address: "",
-          error: data.error,
-        });
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        const data = await res.json();
+        setGotResponse(true);
+        if (!data.error) {
+          setRedeemDetails({
+            tx: data.tx,
+            recipient_address: data.recipient_address,
+            error: null,
+          });
+        } else {
+          setRedeemDetails({
+            tx: "",
+            recipient_address: "",
+            error: data.error,
+          });
+        }
+        // console.log(data);
+      } catch (e) {
+        console.log(e);
+        setGotResponse(false);
+      } finally {
+        setProcessing(false);
       }
-      console.log(data);
     },
     [URL],
   );
@@ -345,7 +365,18 @@ function App() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Get 0.01 BTC</Button>
+            {gotResponse ? (
+              ""
+            ) : processing ? (
+              <Button
+                type="button"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground hover:text-primary cursor-default"
+              >
+                Processing..
+              </Button>
+            ) : (
+              <Button type="submit">Get 0.01 BTC</Button>
+            )}
           </form>
         </Form>
 
