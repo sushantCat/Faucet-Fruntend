@@ -331,7 +331,7 @@ function App() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Get 0.01 BTC/WBTC</Button>
+            <Button type="submit">Get 0.01 BTC</Button>
           </form>
         </Form>
 
