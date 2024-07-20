@@ -33,7 +33,7 @@ import { BitcoinIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { LucideGithub, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isAddress } from "web3-validator";
+// import { isAddress } from "web3-validator";
 import * as bitcoin from "bitcoinjs-lib";
 import BeatLoader from "react-spinners/BeatLoader";
 import "./App.css";
@@ -197,7 +197,7 @@ function App() {
     const data = await res.json();
     console.log(data);
 
-    let value = data.map((val) => ({
+    let value = data.map((val: {datetime: string, tx: string, recipient_address: string}) => ({
       dateTime: val.datetime,
       txHash: val.tx,
       recipientAddress: val.recipient_address,
@@ -319,7 +319,7 @@ function App() {
                       {...field}
                       value={field.value}
                       onChange={(e) => {
-                        const newValue = e.target.value;
+                        // const newValue = e.target.value;
                         field.onChange(e);
                       }}
                     />
