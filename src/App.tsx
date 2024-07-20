@@ -99,7 +99,7 @@ function App() {
 
   const fetchBitcoin = useCallback(
     async (accessToken: String, address: String) => {
-      const res = await fetch(`http://${URL}:3000/get-btc`, {
+      const res = await fetch(`${URL}/get-btc`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -158,7 +158,7 @@ function App() {
   const code = getCode();
 
   const fetchAccessToken = useCallback(async () => {
-    const res = await fetch(`http://${URL}:3000/access-token/${code}`);
+    const res = await fetch(`${URL}/access-token/${code}`);
     if (!res.ok) {
       throw new Error(`HTTP error! Status: ${res.status}`);
     }
@@ -173,7 +173,7 @@ function App() {
           access_token: accessToken,
         }),
       );
-      const usernameRes = await fetch(`http://${URL}:3000/username`, {
+      const usernameRes = await fetch(`${URL}/username`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -190,7 +190,7 @@ function App() {
   );
 
   const fetchTransactions = useCallback(async () => {
-    const res = await fetch(`http://${URL}:3000/transactions`);
+    const res = await fetch(`${URL}/transactions`);
     if (!res.ok) {
       throw new Error(`HTTP error! Status: ${res.status}`);
     }
