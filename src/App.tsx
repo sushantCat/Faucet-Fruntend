@@ -43,19 +43,16 @@ import URL from "./env.ts";
 const CLIENT_ID = "Iv23liAQdUtyqOxndxIa";
 
 function isBitcoinAddress(address: string) {
-  let isValid = false;
   try {
     bitcoin.address.fromBech32(address);
+  } catch (e) {
     try {
       bitcoin.address.toOutputScript(address, bitcoin.networks.testnet);
-      isValid = true;
     } catch (e) {
-      isValid = false;
+      return false;
     }
-  } catch (e) {
-    isValid = false;
   }
-  return isValid;
+  return true;
 }
 
 const FormSchema = z.object({
